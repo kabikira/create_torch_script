@@ -96,7 +96,7 @@ class TSCAN(nn.Module):
         self.final_dense_2 = nn.Linear(self.nb_dense, 1, bias=True)
 
 
-    def forward(self, inputs, params=None):
+    def forward(self, inputs):
 
         diff_input = inputs[:, :3, :, :]
         raw_input = inputs[:, 3:, :, :]
@@ -192,10 +192,11 @@ class EfficientPhys_Conv(nn.Module):
         self.final_dense_2 = nn.Linear(self.nb_dense, 1, bias=True)
         self.batch_norm = nn.BatchNorm2d(3)
         self.channel = channel
+        self.use_raw = channel == 'raw'
 
-    def forward(self, inputs, params=None):
-        if self.channel == 'raw':
-            inputs = torch.diff(inputs, dim=0)
+    def forward(self, inputs):
+        if self.use_raw:
+            inputs = inputs[1:] - inputs[:-1]
             inputs = self.batch_norm(inputs)
         network_input = self.TSM_1(inputs)
         d1 = torch.tanh(self.motion_conv1(network_input))
@@ -285,7 +286,7 @@ class MTTS_CAN(nn.Module):
         self.final_dense_2_r = nn.Linear(self.nb_dense, 1, bias=True)
 
 
-    def forward(self, inputs, params=None):
+    def forward(self, inputs):
 
         diff_input = inputs[:, :3, :, :]
         raw_input = inputs[:, 3:, :, :]
